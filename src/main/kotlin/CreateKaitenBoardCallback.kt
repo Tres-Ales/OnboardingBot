@@ -1,8 +1,10 @@
 package bot
 
+import client.KaitenClient
 import com.github.kotlintelegrambot.dispatcher.*
-import com.github.kotlintelegrambot.entities.*
+import kotlinx.coroutines.runBlocking
 
+val kaitenClient = KaitenClient()
 fun Dispatcher.setUpCreateKaitenBoardCallback(onboardingBot: OnboardingBot) {
     callbackQuery(callbackData = "yes_label") {
         bot.editMessageText(onboardingBot.chatId,
@@ -11,7 +13,12 @@ fun Dispatcher.setUpCreateKaitenBoardCallback(onboardingBot: OnboardingBot) {
         bot.apply {
             sendMessage(chatId = onboardingBot.chatId, text = "Создаем вашу доску в Кайтен...")
         }
-        // СЮДА СКРИПТ СОЗДАНИЯ ДОСКИ
+
+        runBlocking {
+            val defaultBoard = kaitenClient.getDefaultBoardForProductDeveloper()
+            kaitenClient.createBoardFromDefault(defaultBoard, onboardingBot.employeeName)
+        }
+
         bot.sendMessage(
             chatId = onboardingBot.chatId,
             text = "Поздравляю, твоя доска в Кайтен создана"

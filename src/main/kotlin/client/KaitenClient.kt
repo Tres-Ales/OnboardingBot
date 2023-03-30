@@ -154,7 +154,7 @@ class KaitenClient {
         }
         return gson.fromJson(response.bodyAsText(), collectionCardInfoType)
     }
-    
+
     suspend fun moveCardsInOtherColumn(card: CardInfo, columnNumber: Int): CardInfo {
         val columns = getColumnSortedList(card)
         val movedCardInfo = card.apply { this.column_id = columns[columnNumber].id}

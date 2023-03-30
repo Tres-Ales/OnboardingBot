@@ -1,10 +1,10 @@
 package bot
 
-import client.KaitenClient
 import com.github.kotlintelegrambot.dispatcher.Dispatcher
 import com.github.kotlintelegrambot.dispatcher.callbackQuery
 import com.github.kotlintelegrambot.entities.InlineKeyboardMarkup
 import com.github.kotlintelegrambot.entities.keyboard.InlineKeyboardButton
+import kotlinx.coroutines.runBlocking
 
 fun Dispatcher.setUpTasksCallbacks(onboardingBot: OnboardingBot) {
     for (i in onboardingBot.cardsForToday.indices) {
@@ -35,14 +35,18 @@ fun Dispatcher.setUpTasksCallbacks(onboardingBot: OnboardingBot) {
             bot.editMessageText(onboardingBot.chatId,
                 update.callbackQuery?.message?.messageId,
                 text = update.callbackQuery?.message?.text + "\nПеремещена в работу")
-            // Двигать задачку в "В РАБОТЕ"
+            runBlocking {
+                kaitenClient.moveCardsInOtherColumn(currentCard, 1)
+            }
         }
 
         callbackQuery(callbackData = "moveDone_callback" + i) {
             bot.editMessageText(onboardingBot.chatId,
                 update.callbackQuery?.message?.messageId,
                 text = update.callbackQuery?.message?.text + "\nПеремещена в 'Готово'")
-            // Двигать задачку в "ГОТОВО"
+            runBlocking {
+                kaitenClient.moveCardsInOtherColumn(currentCard, 2)
+            }
         }
     }
 }

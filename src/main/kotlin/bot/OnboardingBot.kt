@@ -3,16 +3,22 @@ package bot
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.bot
 import com.github.kotlintelegrambot.dispatch
-import com.github.kotlintelegrambot.dispatcher.*
-import com.github.kotlintelegrambot.entities.*
+import com.github.kotlintelegrambot.dispatcher.Dispatcher
+import com.github.kotlintelegrambot.dispatcher.callbackQuery
+import com.github.kotlintelegrambot.dispatcher.command
+import com.github.kotlintelegrambot.dispatcher.message
+import com.github.kotlintelegrambot.entities.ChatId
+import com.github.kotlintelegrambot.entities.InlineKeyboardMarkup
 import com.github.kotlintelegrambot.entities.keyboard.InlineKeyboardButton
 import com.github.kotlintelegrambot.extensions.filters.Filter
+import models.CardInfo
 
 private const val BOT_TOKEN = "5999987050:AAEZW4pMjVp1gLKwdyusnhVaE4LBvtBDCUs"
 open class OnboardingBot {
     lateinit var employeeName: String
     var onboardingPath: String? = null
     lateinit var occupation: String
+    var cardsForToday: List<CardInfo> = listOf()
     var _chatId: ChatId.Id? = null
     val chatId by lazy { requireNotNull(_chatId) }
 
@@ -25,6 +31,7 @@ open class OnboardingBot {
                 setUpCallbacks()
                 setUpCallbacksForPD(this@OnboardingBot)
                 setUpCreateKaitenBoardCallback(this@OnboardingBot)
+                setUpTasksCallbacks(this@OnboardingBot)
             }
         }
     }
@@ -93,7 +100,8 @@ open class OnboardingBot {
                         text = "Представиться",
                         callbackData = "start"
                     )
-                ))
+                )
+            )
             bot.sendMessage(
                 chatId = chatId,
                 text = "Для дальнейшей работы нам надо познакомиться",

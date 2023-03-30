@@ -5,12 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f9cc3261-ebf8-48e6-843a-8a2ab10a4dd8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/CreateKaitenBoardCallback.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/CreateKaitenBoardCallback.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/OnboardingBot.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/OnboardingBot.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ProductDeveloperCallbacks.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ProductDeveloperCallbacks.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/client/KaitenClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/client/KaitenClient.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/CreateKaitenBoardCallback.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/OnboardingBot.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ProductDeveloperCallbacks.kt" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,7 +77,11 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/main/kotlin" />
     </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/kotlin/bot" />
+    </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
+      <recent name="bot" />
       <recent name="client" />
     </key>
   </component>

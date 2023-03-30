@@ -13,6 +13,9 @@ import models.Board
 import models.Card
 import models.CardInfo
 import models.CreateBoard
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.ZoneId
 
 class KaitenClient {
 
@@ -73,22 +76,39 @@ class KaitenClient {
 
         val defaultLaneArray = defaultBoard.lanes.sortedBy { it.sort_order }.map { it.id }
         val newLaneArray = newBoard.lanes.sortedBy { it.sort_order }.map { it.id }
+
         defaultBoard.cards.filter { !it.archived && !it.description_filled }.forEach {
             val laneIdIndx = defaultLaneArray.indexOf(it.lane_id)
+            val dueDate = if(it.title.contains("Документ", true)){
+                val dtStart = LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toString()
+                val format = SimpleDateFormat("yyyy-MM-dd")
+                format.parse(dtStart)
+            } else {
+                it.due_date
+            }
             it.apply {
                 it.board_id = newBoard.id
                 it.column_id = columnId
                 it.lane_id = newLaneArray[laneIdIndx]
+                it.due_date = dueDate?.toString()
             }
             createCard(it)
         }
         defaultBoard.cards.filter { !it.archived && it.description_filled }.forEach {
             val fullCardInfo = getCardInfo(it.id)
+            val dueDate = if(it.title.contains("Документ", true)){
+                val dtStart = LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toString()
+                val format = SimpleDateFormat("yyyy-MM-dd")
+                format.parse(dtStart)
+            } else {
+                it.due_date
+            }
             val laneIdIndx = defaultLaneArray.indexOf(it.lane_id)
             createCard(fullCardInfo.apply {
                 this.board_id = newBoard.id
                 this.column_id = columnId
                 this.lane_id = newLaneArray[laneIdIndx]
+                this.due_date = dueDate.toString()
             })
         }
     }

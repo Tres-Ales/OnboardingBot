@@ -27,8 +27,8 @@ class KaitenClient {
     private val EXAMPLE_BOARD_ID = 191076
     private val EXAMPLE_IOS_BOARD_ID = 322638
     private val EXAMPLE_BACKEND_BOARD_ID = 322460
-    private val collectionCardInfoType: TypeToken<Collection<CardInfo>> = object : TypeToken<Collection<CardInfo>>() {}
-    private val collectionColumnType: TypeToken<Collection<Column>> = object : TypeToken<Collection<Column>>() {}
+    private val collectionCardInfoType: TypeToken<List<CardInfo>> = object : TypeToken<List<CardInfo>>() {}
+    private val collectionColumnType: TypeToken<List<Column>> = object : TypeToken<List<Column>>() {}
 
     val occupationBoardId: Map<String, Int> = mapOf(
         Pair("iOS", EXAMPLE_IOS_BOARD_ID),
@@ -143,7 +143,7 @@ class KaitenClient {
         return gson.fromJson(response.bodyAsText(), CardInfo::class.java)
     }
 
-    suspend fun getTodayCards(boardId: Int): Collection<CardInfo> {
+    suspend fun getTodayCards(boardId: Int): List<CardInfo> {
         val response: HttpResponse = client.request("https://qiwi.kaiten.ru/api/latest/cards") {
             method = HttpMethod.Get
             headers.append(HttpHeaders.Authorization, KAITEN_BEARER_TOKEN)
@@ -154,11 +154,10 @@ class KaitenClient {
         }
         return gson.fromJson(response.bodyAsText(), collectionCardInfoType)
     }
-
-
+    
     suspend fun moveCardsInOtherColumn(card: CardInfo, columnNumber: Int): CardInfo {
         val columns = getColumnSortedList(card)
-        val movedCardInfo = card.copy(column_id = columns[columnNumber].id)
+        val movedCardInfo = card.apply { this.column_id = columns[columnNumber].id}
         updateCard(movedCardInfo)
         return movedCardInfo
     }

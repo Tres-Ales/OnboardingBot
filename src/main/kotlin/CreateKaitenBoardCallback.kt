@@ -28,7 +28,6 @@ fun Dispatcher.setUpCreateKaitenBoardCallback(onboardingBot: OnboardingBot) {
 
         println(cardsForToday)
 
-        // получить таски на сегодня
         // выслать задания на сегодня
     }
 }

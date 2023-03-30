@@ -9,6 +9,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import kotlinx.coroutines.delay
 import models.*
 import java.text.SimpleDateFormat
 import java.time.*
@@ -26,10 +27,13 @@ class KaitenClient {
     private val EXAMPLE_BOARD_ID = 191076
     private val EXAMPLE_IOS_BOARD_ID = 322638
     private val EXAMPLE_BACKEND_BOARD_ID = 322460
+    private val collectionCardInfoType: TypeToken<Collection<CardInfo>> = object : TypeToken<Collection<CardInfo>>() {}
+    private val collectionColumnType: TypeToken<Collection<Column>> = object : TypeToken<Collection<Column>>() {}
 
-    val occupationBoardId : Map<String, Int> = mapOf(
+    val occupationBoardId: Map<String, Int> = mapOf(
         Pair("iOS", EXAMPLE_IOS_BOARD_ID),
-        Pair("Backend", EXAMPLE_BACKEND_BOARD_ID))
+        Pair("Backend", EXAMPLE_BACKEND_BOARD_ID)
+    )
 
     suspend fun getBoardForProductDeveloperByOccupation(occupation: String): Board {
         val exampleBoardId = occupationBoardId[occupation] ?: EXAMPLE_BOARD_ID
@@ -76,13 +80,7 @@ class KaitenClient {
 
         defaultBoard.cards.filter { !it.archived && !it.description_filled }.forEach {
             val laneIdIndx = defaultLaneArray.indexOf(it.lane_id)
-            val dueDate = if(it.title.contains("Документ", true)){
-                val localDate = LocalDateTime.now()
-                val offsetDate = OffsetDateTime.of(localDate, ZoneOffset.UTC)
-                offsetDate.format(DateTimeFormatter.ISO_DATE_TIME)
-            } else {
-                it.due_date
-            }
+            val dueDate = getDueDate(it)
             it.apply {
                 it.board_id = newBoard.id
                 it.column_id = columnId
@@ -91,25 +89,28 @@ class KaitenClient {
             }
             createCard(it)
         }
-//        defaultBoard.cards.filter { !it.archived && it.description_filled }.forEach {
-//            val fullCardInfo = getCardInfo(it.id)
-//            val dueDate = if(it.title.contains("Документ", true)){
-//                val dtStart = LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toString()
-//                val format = SimpleDateFormat("yyyy-MM-dd")
-//                format.parse(dtStart)
-//            } else {
-//                it.due_date
-//            }
-//            val laneIdIndx = defaultLaneArray.indexOf(it.lane_id)
-//            createCard(fullCardInfo.apply {
-//                this.board_id = newBoard.id
-//                this.column_id = columnId
-//                this.lane_id = newLaneArray[laneIdIndx]
-//                this.due_date = dueDate.toString()
-//            })
-//        }
+        defaultBoard.cards.filter { !it.archived && it.description_filled }.forEach {
+            val fullCardInfo = getCardInfo(it.id)
+            val dueDate = getDueDate(it)
+            val laneIdIndx = defaultLaneArray.indexOf(it.lane_id)
+            createCard(fullCardInfo.apply {
+                this.board_id = newBoard.id
+                this.column_id = columnId
+                this.lane_id = newLaneArray[laneIdIndx]
+                this.due_date = dueDate.toString()
+            })
+        }
         return newBoard.id
     }
+
+    private fun getDueDate(it: Card): String? =
+        if (it.title.contains("Документ", true)) {
+            val localDate = LocalDateTime.now()
+            val offsetDate = OffsetDateTime.of(localDate, ZoneOffset.UTC)
+            offsetDate.format(DateTimeFormatter.ISO_DATE_TIME)
+        } else {
+            it.due_date
+        }
 
     private suspend fun createCard(card: Card) {
         val response: HttpResponse =
@@ -119,7 +120,6 @@ class KaitenClient {
                 headers.append(HttpHeaders.ContentType, "application/json")
                 setBody(gson.toJson(card))
             }
-//        println(response.bodyAsText())
     }
 
     private suspend fun createCard(card: CardInfo) {
@@ -130,30 +130,55 @@ class KaitenClient {
                 headers.append(HttpHeaders.ContentType, "application/json")
                 setBody(gson.toJson(card))
             }
-        println(response.bodyAsText())
     }
 
     private suspend fun getCardInfo(cardId: Int): CardInfo {
+        delay(300L)
         val response: HttpResponse =
             client.request("https://qiwi.kaiten.ru/api/latest/cards/${cardId}") {
                 method = HttpMethod.Get
                 headers.append(HttpHeaders.Authorization, KAITEN_BEARER_TOKEN)
                 headers.append(HttpHeaders.ContentType, "application/json")
             }
-//        println(response.bodyAsText())
         return gson.fromJson(response.bodyAsText(), CardInfo::class.java)
     }
 
     suspend fun getTodayCards(boardId: Int): Collection<CardInfo> {
         val response: HttpResponse = client.request("https://qiwi.kaiten.ru/api/latest/cards") {
+            method = HttpMethod.Get
+            headers.append(HttpHeaders.Authorization, KAITEN_BEARER_TOKEN)
+            headers.append(HttpHeaders.ContentType, "application/json")
+            parameter("due_date_after", "2023-03-29")
+            parameter("due_date_before", "2023-03-31")
+            parameter("board_id", boardId)
+        }
+        return gson.fromJson(response.bodyAsText(), collectionCardInfoType)
+    }
+
+
+    suspend fun moveCardsInOtherColumn(card: CardInfo, columnNumber: Int): CardInfo {
+        val columns = getColumnSortedList(card)
+        val movedCardInfo = card.copy(column_id = columns[columnNumber].id)
+        updateCard(movedCardInfo)
+        return movedCardInfo
+    }
+
+    private suspend fun getColumnSortedList(card: CardInfo): List<Column> {
+        val response: HttpResponse =
+            client.request("https://qiwi.kaiten.ru/api/latest/boards/${card.board_id}/columns") {
                 method = HttpMethod.Get
                 headers.append(HttpHeaders.Authorization, KAITEN_BEARER_TOKEN)
                 headers.append(HttpHeaders.ContentType, "application/json")
-                parameter("due_date_after", "2023-03-29")
-                parameter("due_date_before", "2023-03-31")
-                parameter("board_id", boardId)
             }
-        val collectionType: TypeToken<Collection<CardInfo>> = object : TypeToken<Collection<CardInfo>>() {}
-        return gson.fromJson(response.bodyAsText(), collectionType)
+        return gson.fromJson(response.bodyAsText(), collectionColumnType).sortedBy { it.sort_order }
+    }
+
+    private suspend fun updateCard(card: CardInfo) {
+        client.request("https://qiwi.kaiten.ru/api/latest/cards/${card.id}") {
+            method = HttpMethod.Patch
+            headers.append(HttpHeaders.Authorization, KAITEN_BEARER_TOKEN)
+            headers.append(HttpHeaders.ContentType, "application/json")
+            setBody(gson.toJson(card))
+        }
     }
 }

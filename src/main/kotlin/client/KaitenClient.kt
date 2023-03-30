@@ -3,19 +3,15 @@ package client
 import com.google.gson.Gson
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.request.request
-import io.ktor.client.request.setBody
+import io.ktor.client.request.*
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import models.Board
-import models.Card
-import models.CardInfo
-import models.CreateBoard
+import models.*
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.ZoneId
+import java.time.*
+import java.time.format.DateTimeFormatter
 
 class KaitenClient {
 
@@ -23,7 +19,7 @@ class KaitenClient {
         expectSuccess = false
     }
     private val gson = Gson()
-    private val KAITEN_BEARER_TOKEN = "Bearer 86c847ac-6b65-415c-bc2c-1cd826c4f8b9"
+    private val KAITEN_BEARER_TOKEN = "Bearer 90f4e9b8-4dda-4048-a871-5d676f5b9dd2"
     private val ONBOARDING_SPACE_ID = 35455
     private val TEST_SPACE_ID = 20362
     private val EXAMPLE_BOARD_ID = 191076
@@ -80,9 +76,9 @@ class KaitenClient {
         defaultBoard.cards.filter { !it.archived && !it.description_filled }.forEach {
             val laneIdIndx = defaultLaneArray.indexOf(it.lane_id)
             val dueDate = if(it.title.contains("Документ", true)){
-                val dtStart = LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toString()
-                val format = SimpleDateFormat("yyyy-MM-dd")
-                format.parse(dtStart)
+                val localDate = LocalDateTime.now()
+                val offsetDate = OffsetDateTime.of(localDate, ZoneOffset.UTC)
+                offsetDate.format(DateTimeFormatter.ISO_DATE_TIME)
             } else {
                 it.due_date
             }
@@ -94,23 +90,23 @@ class KaitenClient {
             }
             createCard(it)
         }
-        defaultBoard.cards.filter { !it.archived && it.description_filled }.forEach {
-            val fullCardInfo = getCardInfo(it.id)
-            val dueDate = if(it.title.contains("Документ", true)){
-                val dtStart = LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toString()
-                val format = SimpleDateFormat("yyyy-MM-dd")
-                format.parse(dtStart)
-            } else {
-                it.due_date
-            }
-            val laneIdIndx = defaultLaneArray.indexOf(it.lane_id)
-            createCard(fullCardInfo.apply {
-                this.board_id = newBoard.id
-                this.column_id = columnId
-                this.lane_id = newLaneArray[laneIdIndx]
-                this.due_date = dueDate.toString()
-            })
-        }
+//        defaultBoard.cards.filter { !it.archived && it.description_filled }.forEach {
+//            val fullCardInfo = getCardInfo(it.id)
+//            val dueDate = if(it.title.contains("Документ", true)){
+//                val dtStart = LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toString()
+//                val format = SimpleDateFormat("yyyy-MM-dd")
+//                format.parse(dtStart)
+//            } else {
+//                it.due_date
+//            }
+//            val laneIdIndx = defaultLaneArray.indexOf(it.lane_id)
+//            createCard(fullCardInfo.apply {
+//                this.board_id = newBoard.id
+//                this.column_id = columnId
+//                this.lane_id = newLaneArray[laneIdIndx]
+//                this.due_date = dueDate.toString()
+//            })
+//        }
     }
 
     private suspend fun createCard(card: Card) {
@@ -121,7 +117,7 @@ class KaitenClient {
                 headers.append(HttpHeaders.ContentType, "application/json")
                 setBody(gson.toJson(card))
             }
-//        println(response.bodyAsText())
+        println(response.bodyAsText())
     }
 
     private suspend fun createCard(card: CardInfo) {
@@ -132,7 +128,7 @@ class KaitenClient {
                 headers.append(HttpHeaders.ContentType, "application/json")
                 setBody(gson.toJson(card))
             }
-//        println(response.bodyAsText())
+        println(response.bodyAsText())
     }
 
     private suspend fun getCardInfo(cardId: Int): CardInfo {
@@ -144,5 +140,19 @@ class KaitenClient {
             }
 //        println(response.bodyAsText())
         return gson.fromJson(response.bodyAsText(), CardInfo::class.java)
+    }
+
+//    private suspend fun getTodayCards() : List<CardInfo> {
+    suspend fun getTodayCards() {
+        val response: HttpResponse =
+            client.request("https://qiwi.kaiten.ru/api/latest/time-logs") {
+                method = HttpMethod.Get
+                headers.append(HttpHeaders.Authorization, KAITEN_BEARER_TOKEN)
+                headers.append(HttpHeaders.ContentType, "application/json")
+                parameter("from", "2023-03-30")
+                parameter("to", "2023-03-31")
+            }
+        println(response.bodyAsText())
+//        return gson.fromJson(response.bodyAsText(), CardInfo)
     }
 }

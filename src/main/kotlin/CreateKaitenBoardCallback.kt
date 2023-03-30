@@ -17,12 +17,16 @@ fun Dispatcher.setUpCreateKaitenBoardCallback(onboardingBot: OnboardingBot) {
         runBlocking {
             val defaultBoard = kaitenClient.getBoardForProductDeveloperByOccupation(onboardingBot.occupation)
             kaitenClient.createBoardFromDefault(defaultBoard, onboardingBot.employeeName)
+
+            bot.sendMessage(
+                chatId = onboardingBot.chatId,
+                text = "Поздравляю, твоя доска в Кайтен создана"
+            )
+
+            kaitenClient.getTodayCards()
         }
 
-        bot.sendMessage(
-            chatId = onboardingBot.chatId,
-            text = "Поздравляю, твоя доска в Кайтен создана"
-        )
+
         // получить таски на сегодня
         // выслать задания на сегодня
     }

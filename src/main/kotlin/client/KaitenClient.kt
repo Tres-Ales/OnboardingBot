@@ -1,6 +1,7 @@
 package client
 
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.*
@@ -51,7 +52,7 @@ class KaitenClient {
         return gson.fromJson(response.bodyAsText(), Board::class.java)
     }
 
-    suspend fun createBoardFromDefault(defaultBoard: Board, employeeName: String) {
+    suspend fun createBoardFromDefault(defaultBoard: Board, employeeName: String): Int {
         val boardForCreate = defaultBoard.run {
             CreateBoard(
                 title = "Онбординг $employeeName",
@@ -107,6 +108,7 @@ class KaitenClient {
 //                this.due_date = dueDate.toString()
 //            })
 //        }
+        return newBoard.id
     }
 
     private suspend fun createCard(card: Card) {
@@ -117,7 +119,7 @@ class KaitenClient {
                 headers.append(HttpHeaders.ContentType, "application/json")
                 setBody(gson.toJson(card))
             }
-        println(response.bodyAsText())
+//        println(response.bodyAsText())
     }
 
     private suspend fun createCard(card: CardInfo) {
@@ -142,17 +144,16 @@ class KaitenClient {
         return gson.fromJson(response.bodyAsText(), CardInfo::class.java)
     }
 
-//    private suspend fun getTodayCards() : List<CardInfo> {
-    suspend fun getTodayCards() {
-        val response: HttpResponse =
-            client.request("https://qiwi.kaiten.ru/api/latest/time-logs") {
+    suspend fun getTodayCards(boardId: Int): Collection<CardInfo> {
+        val response: HttpResponse = client.request("https://qiwi.kaiten.ru/api/latest/cards") {
                 method = HttpMethod.Get
                 headers.append(HttpHeaders.Authorization, KAITEN_BEARER_TOKEN)
                 headers.append(HttpHeaders.ContentType, "application/json")
-                parameter("from", "2023-03-30")
-                parameter("to", "2023-03-31")
+                parameter("due_date_after", "2023-03-29")
+                parameter("due_date_before", "2023-03-31")
+                parameter("board_id", boardId)
             }
-        println(response.bodyAsText())
-//        return gson.fromJson(response.bodyAsText(), CardInfo)
+        val collectionType: TypeToken<Collection<CardInfo>> = object : TypeToken<Collection<CardInfo>>() {}
+        return gson.fromJson(response.bodyAsText(), collectionType)
     }
 }

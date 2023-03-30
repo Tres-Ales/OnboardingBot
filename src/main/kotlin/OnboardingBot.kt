@@ -31,6 +31,9 @@ open class OnboardingBot {
 
     private fun Dispatcher.setUpCallbacks() {
         callbackQuery(callbackData = "start") {
+            bot.editMessageText(chatId,
+                update.callbackQuery?.message?.messageId,
+                text = update.callbackQuery?.message?.text ?: "")
             bot.sendMessage(chatId = chatId, text = "Отправь мне свое имя")
             message(Filter.Text) {
                 val inlineKeyboardMarkup = InlineKeyboardMarkup.create(

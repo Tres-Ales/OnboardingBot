@@ -33,7 +33,7 @@ fun Dispatcher.setUpCallbacksForPD(onboardingBot: OnboardingBot) {
             listOf(
                 InlineKeyboardButton.CallbackData(
                     text = "Backend",
-                    callbackData = "default_callback"
+                    callbackData = "backend_callback"
                 )
             )
         )
@@ -46,6 +46,10 @@ fun Dispatcher.setUpCallbacksForPD(onboardingBot: OnboardingBot) {
     }
     callbackQuery (callbackData = "ios_callback") {
         onboardingBot.occupation = "iOS"
+        gotOccupation(onboardingBot)
+    }
+    callbackQuery (callbackData = "backend_callback") {
+        onboardingBot.occupation = "Backend"
         gotOccupation(onboardingBot)
     }
     callbackQuery (callbackData = "default_callback") {

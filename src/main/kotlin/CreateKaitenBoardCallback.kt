@@ -15,7 +15,7 @@ fun Dispatcher.setUpCreateKaitenBoardCallback(onboardingBot: OnboardingBot) {
         }
 
         runBlocking {
-            val defaultBoard = kaitenClient.getDefaultBoardForProductDeveloper()
+            val defaultBoard = kaitenClient.getBoardForProductDeveloperByOccupation(onboardingBot.occupation)
             kaitenClient.createBoardFromDefault(defaultBoard, onboardingBot.employeeName)
         }
 

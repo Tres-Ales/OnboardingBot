@@ -24,6 +24,24 @@ class KaitenClient {
     private val ONBOARDING_SPACE_ID = 35455
     private val TEST_SPACE_ID = 20362
     private val EXAMPLE_BOARD_ID = 191076
+    private val EXAMPLE_IOS_BOARD_ID = 322638
+    private val EXAMPLE_BACKEND_BOARD_ID = 322460
+
+    val occupationBoardId : Map<String, Int> = mapOf(
+        Pair("iOS", EXAMPLE_IOS_BOARD_ID),
+        Pair("Backend", EXAMPLE_BACKEND_BOARD_ID))
+
+    suspend fun getBoardForProductDeveloperByOccupation(occupation: String): Board {
+        val exampleBoardId = occupationBoardId[occupation] ?: EXAMPLE_BOARD_ID
+        val response: HttpResponse =
+            client.request("https://qiwi.kaiten.ru/api/latest/spaces/${ONBOARDING_SPACE_ID}/boards/${exampleBoardId}") {
+                method = HttpMethod.Get
+                headers.append(HttpHeaders.Authorization, KAITEN_BEARER_TOKEN)
+                headers.append(HttpHeaders.ContentType, "application/json")
+            }
+        return gson.fromJson(response.bodyAsText(), Board::class.java)
+    }
+
     suspend fun getDefaultBoardForProductDeveloper(): Board {
         val response: HttpResponse =
             client.request("https://qiwi.kaiten.ru/api/latest/spaces/${ONBOARDING_SPACE_ID}/boards/${EXAMPLE_BOARD_ID}") {

@@ -21,7 +21,7 @@ class KaitenClient {
         expectSuccess = false
     }
     private val gson = Gson()
-    private val KAITEN_BEARER_TOKEN = "Bearer 223f7b7d-6d0f-489f-9803-4e9cad385620"
+    private val KAITEN_BEARER_TOKEN = "YOUR_KAITEN_TOKEN"
     private val ONBOARDING_SPACE_ID = 35455
     private val TEST_SPACE_ID = 20362
     private val EXAMPLE_BOARD_ID = 191076
